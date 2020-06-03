@@ -17,6 +17,7 @@ from utils.logger import logger
 from utils.csv import write_detections_summary
 from utils.yaml import read_cfg
 from utils.parser import get_parser
+from utils.colors import get_random_rgb
 
 
 def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, detector: str, detector_cfg: dict):
@@ -26,15 +27,13 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
     :param input_video_path:
     :param output_video_path:
     :param tracklet_csv_path:
-    :return:
     """
 
     cap = cv2.VideoCapture(input_video_path)
-    frame_cont = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    logger.info(f"Number of frames detected: {int(frame_count)}")
 
-    logger.info(f"Number of frames detected: {int(frame_cont)}")
-
-    begin = int(frame_cont)
+    begin = int(frame_count)
     blank_image = Image.new("RGB", (5760, 2160))
 
     vid = imageio.get_reader(input_video_path, 'ffmpeg')
@@ -104,7 +103,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
                 newperson = list(chunks(s, 4))
                 newpersonlist.append(newperson)
 
-            # image = cv2.imread('frame.jpg')
             bcounter = 0
             histarray = []
             bighist = []
@@ -1053,10 +1051,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
         if list1 in tracklets1:
             tracklets1.remove(list1)
 
-        colors = [(212, 0, 162), (58, 81, 232), (0, 212, 14), (0, 240, 255), (232, 81, 58), (0, 168, 255),
-                  (255, 255, 255), (212, 0, 162), (58, 81, 232), (0, 212, 14), (0, 198, 212), (198, 0, 212),
-                  (0, 168, 255), (255, 255, 255), (209, 209, 0), (0, 255, 179), (212, 0, 162), (58, 81, 232),
-                  (0, 212, 14), (0, 240, 255), (232, 81, 58), (0, 168, 255), (255, 255, 255)]
         alltracks = []
         for tracklet in tracklets1:
             alltracks.append(tracklet)
@@ -1217,7 +1211,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
             for t in ntrajs:
                 if t != p1:
                     p2 = t
-                    # compare p1 and p2
                     if p1[0] == p2[0]:
                         p1counter = 0
                         p2counter = 0
@@ -1341,8 +1334,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        # logger.info(w)
-        # logger.info(h)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter('tudout.mp4', fourcc, 15, (w, h))
         # out = cv2.VideoWriter(OUTPUT_VIDEO_PATH, fourcc, 15, (w, h))
@@ -1360,8 +1351,7 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
         while True:
             ret, frame = cap.read()
             counter = counter + 1
-            if ret == True:
-
+            if ret:
                 # frame = cv2.resize(frame, (1920, 1080))
                 for trajectories in ntrajs:
                     index = ntrajs.index(trajectories)
@@ -1371,7 +1361,7 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
                     xdist = distances[0]
                     ydist = distances[1]
 
-                    color = colors[index]
+                    color = get_random_rgb()
                     if counter == start:
                         cv2.rectangle(frame, (int(trajectories[0][0] - xdist), int(trajectories[0][1] - ydist)),
                                       (int(trajectories[0][0] + xdist), int(trajectories[0][1] + ydist)), color, 4)
@@ -1490,6 +1480,7 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
         # vidstring = f"ffmpeg -i {OUTPUT_VIDEO_PATH} {input_video_path}"
         subprocess.call(vidstring, shell=True)
 
+    # tu jest merge plików segmentowych do całościowego
     files = glob.glob('TRACK_VIDEOS_PATH')
 
     files2 = []
