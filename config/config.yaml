@@ -1,0 +1,8 @@
+tracker:
+  input_video: "fixtures/videos/input/pets1s.mp4"
+  output_video: "fixtures/videos/output/out.mp4"
+  output_dir: "fixtures/videos/output/"
+  tracklet_detections: "fixtures/tracklet-detections.csv"
+detectors:
+  felzenszwalb:
+    step: 15
