@@ -11,7 +11,7 @@ import matlab.engine
 import cv2
 
 from tracker.math import get_2D_dist, sort_num
-from utils.files import truncate_file, del_files
+from utils.files import truncate_file, del_files, sorted_ls
 from utils.helpers import chunks
 from utils.logger import logger
 from utils.csv import write_detections_summary
@@ -159,8 +159,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
                             hist4 = cv2.calcHist(cropbody, [0, 1, 2], None, [8, 8, 8], [0, 256, 0, 256, 0, 256])
                             hist4 = cv2.normalize(hist4, None).flatten()
                         except Exception as e:
-                            #cv2.imshow("crop", cropbody)
-                            #cv2.waitKey(0)
                             logger.error(e)
                             hist4 = []
                             hist4 = numpy.array(hist4)
@@ -223,7 +221,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
 
         # create input graph
         oblank = numpy.array(blank_image)
-        mclique = oblank.copy()
         oblank = cv2.cvtColor(oblank, cv2.COLOR_RGB2BGR)
         oblank = numpy.array(oblank)
         cv2.line(oblank, (10, 10), (100, 100), (255, 0, 0), 1)
@@ -237,10 +234,6 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
         outfile.close()
         tracklets1 = []
         framees = []
-
-        beginvectorframe = [framearray[0][0], framearray[1][0], framearray[2][0], framearray[3][0], framearray[4][0],
-                            framearray[5][0]]
-
         hypotnodes = []
         poslengths = []
         while True:
@@ -1512,13 +1505,9 @@ def gmcp(input_video_path: str, output_video_path: str, tracklet_csv_path: str, 
 
     filenames = []
 
-    def sorted_ls(path):
-        mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
-        return list(sorted(os.listdir(path), key=mtime))
+    listing = sorted_ls(output_video_path)
 
-    listing2 = sorted_ls(output_video_path)
-
-    for infile in listing2:
+    for infile in listing:
         filenames.append(output_video_path + infile)
 
     filenames.append(tracklet_csv_path)

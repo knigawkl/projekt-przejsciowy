@@ -11,3 +11,8 @@ def del_files(dir_path: str):
     files = glob.glob(dir_path + "*")
     for f in files:
         os.remove(f)
+
+
+def sorted_ls(path):
+    mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
+    return list(sorted(os.listdir(path), key=mtime))
