@@ -2,7 +2,6 @@ import os
 import numpy
 import itertools
 import subprocess
-import glob
 import random
 from PIL import Image
 import pickle
@@ -10,14 +9,16 @@ import imageio
 import matlab.engine
 import cv2
 
-from tracker.math import get_2D_dist, sort_num
-from utils.files import truncate_file, del_files, sorted_ls
+from tracker.math import get_2D_dist
+from utils.files import truncate_file, del_files
 from utils.helpers import chunks
 from utils.logger import logger
 from utils.csv import write_detections_summary
 from utils.yaml import read_cfg
 from utils.parser import get_parser
 from utils.colors import get_random_rgb
+from utils.videos import merge_videos
+
 
 FELZENSZWALB_PATH = "detectors/felzenszwalb/"
 SEGMENT_VIDEOS_PATH = "fixtures/tmp/videos/"
@@ -191,8 +192,6 @@ class GMCP:
                 if index >= 3:
                     nloc = index - 3
                     blank_image.paste(pilimg, (1920 * nloc, 1080))
-
-                blank_image.save("blank.jpg")
 
             for f in framearray:
                 for p in f:
@@ -990,7 +989,6 @@ class GMCP:
 
             oblank = cv2.cvtColor(oblank, cv2.COLOR_RGB2BGR)
             lined = Image.fromarray(oblank)
-            lined.save("lines.jpg")
 
             f = open('frame.pkl', 'rb')
             framecopy2 = pickle.load(f)
@@ -1045,11 +1043,6 @@ class GMCP:
                 alltracks.append(tracklet)
 
             blended = cv2.cvtColor(blended, cv2.COLOR_RGB2BGR)
-
-            title = "tracklets.jpg"
-
-            trackletsonblended = Image.fromarray(blended)
-            trackletsonblended.save(title)
 
             trajs = alltracks
 
@@ -1464,28 +1457,7 @@ class GMCP:
             vidstring = f"ffmpeg -i tudout.mp4 {SEGMENT_VIDEOS_PATH}" + str(segment_counter) + ".mp4"
             subprocess.call(vidstring, shell=True)
 
-        # todo tu jest merge plików segmentowych do całościowego i zapis do video.out
-        # files = glob.glob('TRACK_VIDEOS_PATH')
-        #
-        # files2 = []
-        # for f in files:
-        #     f = f[12:]
-        #     files2.append(f)
-        #
-        # sorted_files = sorted(files2, key=sort_num)
-        #
-        # with open("test2.txt", "w") as text_file:
-        #     for f in sorted_files:
-        #         text_file.write(f + str("\n"))
-        #
-        # filenames = []
-        #
-        # listing = sorted_ls(self.video_out)
-        #
-        # for infile in listing:
-        #     filenames.append(self.video_out + infile)
-        #
-        # filenames.append(self.tracklet_csv)
+        merge_videos(videos_dir=SEGMENT_VIDEOS_PATH+"*", output_file=self.video_out)
 
 
 if __name__ == "__main__":
