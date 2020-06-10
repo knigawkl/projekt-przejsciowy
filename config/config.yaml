@@ -1,10 +1,12 @@
 tracker:
-  #input_video: "fixtures/videos/input/pets1s.mp4"
-  input_video: "fixtures/videos/input/parkinglot.mp4"
+  input_video: "fixtures/videos/input/pets1s.mp4"
+  #input_video: "fixtures/videos/input/parkinglot.mp4"
   output_video: "fixtures/videos/output/out.mp4"
   tracklet_detections: "fixtures/tmp/tracklet-detections.csv"
-  frames_in_segment: 15
-  detection_per_frames: 3
+  #frames_in_segment: 15
+  #detection_per_frames: 3
+  frames_in_segment: 5
+  detection_per_frames: 1
 detectors:
   felzenszwalb:
     sth: 0

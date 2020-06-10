@@ -32,6 +32,7 @@ class GMCP:
         self.video_in = input_video
         self.video_out = output_video
         self.tracklet_csv = tracklet_csv
+        self.colors = [get_random_rgb() for x in range(0, 100)]
 
     def track(self, detector: str, detector_cfg: dict, frames_in_segment: int, frames_per_detection: int):
         cap = cv2.VideoCapture(self.video_in)
@@ -49,11 +50,15 @@ class GMCP:
 
         for x in range(0, int(frame_count), frames_in_segment):
             segment_counter = segment_counter + 1
-            begval = x
+            begval = x  # todo od której klatki startuje segment
             frames_in_segment = frames_per_detection
             hypdist = 80
-            nums = [begval, begval + frames_in_segment, begval + frames_in_segment * 2, begval + frames_in_segment * 3,
-                    begval + frames_in_segment * 4, begval + frames_in_segment * 5]
+            nums = [begval,
+                    begval + frames_in_segment,
+                    begval + frames_in_segment * 2,
+                    begval + frames_in_segment * 3,
+                    begval + frames_in_segment * 4,
+                    begval + frames_in_segment * 5]
             framearray = []
             clusterarray = []
             clusterpoints = []
@@ -1035,7 +1040,6 @@ class GMCP:
             if list1 in tracklets1:
                 tracklets1.remove(list1)
 
-            colors = [get_random_rgb() for x in range(0, 100)]
             alltracks = []
             for tracklet in tracklets1:
                 alltracks.append(tracklet)
@@ -1342,7 +1346,7 @@ class GMCP:
                         xdist = distances[0]
                         ydist = distances[1]
 
-                        color = colors[index]
+                        color = self.colors[index]
 
                         if counter == start:
                             cv2.rectangle(frame, (int(trajectories[0][0] - xdist), int(trajectories[0][1] - ydist)),
