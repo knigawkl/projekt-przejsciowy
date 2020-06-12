@@ -18,6 +18,7 @@ from utils.yaml import read_cfg
 from utils.parser import get_parser
 from utils.colors import get_random_rgb
 from utils.videos import merge_videos
+from detectors.ssd.ssd import find_heads_ssd
 
 
 FELZENSZWALB_PATH = "detectors/felzenszwalb/"
@@ -41,10 +42,11 @@ class GMCP:
 
         cap = cv2.VideoCapture(self.video_in)
         frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        video_cut_frame_count = int(frame_count // frames_in_segment * frames_in_segment)
         logger.info(f"Number of frames detected: {int(frame_count)}")
+        logger.info(f"Number of frames to be analysed: {video_cut_frame_count}")
 
         blank_image = Image.new("RGB", (5760, 2160))
-
         video = imageio.get_reader(self.video_in, 'ffmpeg')
 
         segment_counter = 0
@@ -100,7 +102,7 @@ class GMCP:
                     val = eng.persontest({'arg1': img_to_detect_on})  # na tym saveim.jpeg wykonywana jest detekcja
                     # tu trzeba zobaczyć co jest zwracane w val
                 if detector == "ssd":
-                    pass
+                    val = find_heads_ssd()
 
                 counter = 0
                 newlist = []

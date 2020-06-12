@@ -7,3 +7,5 @@ tracker:
 detectors:
   felzenszwalb:
     sth: 0
+  ssd:
+    confidence_threshold: 0.25
