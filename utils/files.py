@@ -13,6 +13,10 @@ def del_files(dir_path: str):
         os.remove(f)
 
 
+def del_file(path: str):
+    os.remove(path)
+
+
 def sorted_ls(path):
     mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
     return list(sorted(os.listdir(path), key=mtime))

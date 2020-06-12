@@ -1,0 +1,2 @@
+file 'fixtures/tmp/videos/segments/1.mp4'
+file 'fixtures/tmp/videos/segments/2.mp4'

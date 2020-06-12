@@ -21,7 +21,7 @@ from utils.videos import merge_videos
 
 
 FELZENSZWALB_PATH = "detectors/felzenszwalb/"
-SEGMENT_VIDEOS_PATH = "fixtures/tmp/videos/"
+SEGMENT_VIDEOS_PATH = "fixtures/tmp/videos/segments/"
 
 
 class GMCP:
@@ -36,6 +36,9 @@ class GMCP:
         self.colors = [get_random_rgb() for x in range(0, 100)]
 
     def track(self, detector: str, detector_cfg: dict, frames_in_segment: int, frames_per_detection: int):
+        assert detector in ["felzenszwalb", "ssd", "yolo"]
+        detector_cfg = detector_cfg[detector]
+
         cap = cv2.VideoCapture(self.video_in)
         frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
         logger.info(f"Number of frames detected: {int(frame_count)}")
@@ -50,8 +53,8 @@ class GMCP:
         truncate_file(filename=self.tracklet_csv)
 
         for x in range(0, int(frame_count), frames_in_segment):
-            segment_counter = segment_counter + 1
-            begval = x  # todo od której klatki startuje segment
+            segment_counter += 1
+            begval = x
             frames_in_segment = frames_per_detection
             hypdist = 80
             nums = [begval,
@@ -75,9 +78,9 @@ class GMCP:
             points_box = []
             boundingpoints = []
             boxesarray = []
-
-            eng = matlab.engine.start_matlab()
-            eng.cd(FELZENSZWALB_PATH)
+            if detector == "felzenszwalb":
+                eng = matlab.engine.start_matlab()
+                eng.cd(FELZENSZWALB_PATH)
 
             for num in nums:
                 image = video.get_data(num)
@@ -87,13 +90,18 @@ class GMCP:
                     firstframe = image
                 if indexcounter == 5:
                     lastframe = image
-                cv2.imwrite('saveim.jpeg', image)
+                cv2.imwrite('fixtures/tmp/img/saveim.jpeg', image)
                 im = image.copy()
-                image = "/saveim.jpeg"
-                himage = cv2.imread('saveim.jpeg')
+                image = "/fixtures/tmp/img/saveim.jpeg"
+                himage = cv2.imread('fixtures/tmp/img/saveim.jpeg')
                 path = os.getcwd()
-                pathim = str(path) + str(image)
-                val = eng.persontest({'arg1': pathim})
+                img_to_detect_on = str(path) + str(image)
+                if detector == "felzenszwalb":
+                    val = eng.persontest({'arg1': img_to_detect_on})  # na tym saveim.jpeg wykonywana jest detekcja
+                    # tu trzeba zobaczyć co jest zwracane w val
+                if detector == "ssd":
+                    pass
+
                 counter = 0
                 newlist = []
                 personlist = []
@@ -234,7 +242,7 @@ class GMCP:
             logger.info((len(framearray)))
             framecopy1 = list(framearray)
 
-            outfile = open('frame.pkl', 'wb')
+            outfile = open('fixtures/tmp/frame.pkl', 'wb')
             pickle.dump(framecopy1, outfile)
             outfile.close()
             tracklets1 = []
@@ -890,9 +898,7 @@ class GMCP:
                                     except:
                                         pass
                                 else:
-                                    logger.info("!!!!!!!!!!!!!!!!!!!!")
                                     logger.info("found a saver " + str(cpoint))
-                                    logger.info("!!!!!!!!!!!!!!!!!!!!")
                                     pass
                             else:
                                 try:
@@ -990,7 +996,7 @@ class GMCP:
             oblank = cv2.cvtColor(oblank, cv2.COLOR_RGB2BGR)
             lined = Image.fromarray(oblank)
 
-            f = open('frame.pkl', 'rb')
+            f = open('fixtures/tmp/frame.pkl', 'rb')
             framecopy2 = pickle.load(f)
 
             framecopy2[0].append([0, 0])
@@ -1315,7 +1321,7 @@ class GMCP:
             h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            vw = cv2.VideoWriter('tudout.mp4', fourcc, 15, (w, h))
+            vw = cv2.VideoWriter('fixtures/tmp/videos/out.mp4', fourcc, 15, (w, h))
             counter = 0
 
             start = begval
@@ -1454,7 +1460,7 @@ class GMCP:
             vw.release()
             cv2.destroyAllWindows()
 
-            vidstring = f"ffmpeg -i tudout.mp4 {SEGMENT_VIDEOS_PATH}" + str(segment_counter) + ".mp4"
+            vidstring = f"ffmpeg -i fixtures/tmp/videos/out.mp4 {SEGMENT_VIDEOS_PATH}" + str(segment_counter) + ".mp4"
             subprocess.call(vidstring, shell=True)
 
         merge_videos(videos_dir=SEGMENT_VIDEOS_PATH+"*", output_file=self.video_out)
