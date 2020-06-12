@@ -20,7 +20,6 @@ from utils.colors import get_random_rgb
 from utils.videos import merge_videos
 from detectors.ssd.ssd import find_heads_ssd
 
-
 FELZENSZWALB_PATH = "detectors/felzenszwalb/"
 SEGMENT_VIDEOS_PATH = "fixtures/tmp/videos/segments/"
 
@@ -49,11 +48,10 @@ class GMCP:
         blank_image = Image.new("RGB", (5760, 2160))
         video = imageio.get_reader(self.video_in, 'ffmpeg')
 
-        segment_counter = 0
-
         del_files(dir_path=SEGMENT_VIDEOS_PATH)
         truncate_file(filename=self.tracklet_csv)
 
+        segment_counter = 0
         for x in range(0, int(frame_count), frames_in_segment):
             segment_counter += 1
             begval = x
@@ -70,9 +68,7 @@ class GMCP:
             clusterpoints = []
             indexcounter = 0
             histogramarray = []
-
             drframes = []
-
             donehyp = False
             points_hist = []
             points_cluster = []
@@ -98,29 +94,29 @@ class GMCP:
                 himage = cv2.imread('fixtures/tmp/img/saveim.jpeg')
                 path = os.getcwd()
                 img_to_detect_on = str(path) + str(image)
-                if detector == "felzenszwalb":
-                    val = eng.persontest({'arg1': img_to_detect_on})  # na tym saveim.jpeg wykonywana jest detekcja
-                    # tu trzeba zobaczyć co jest zwracane w val
-                if detector == "ssd":
-                    val = find_heads_ssd()
-
-                counter = 0
-                newlist = []
-                personlist = []
-                for s in val:
-                    for c in s:
-                        counter = counter + 1
-                        if counter < 37:
-                            c = round(c, 2)
-                            newlist.append(c)
-                    personlist.append(newlist)
-                    newlist = []
-                    counter = 0
 
                 newpersonlist = []
-                for s in personlist:
-                    newperson = list(chunks(s, 4))
-                    newpersonlist.append(newperson)
+                if detector == "felzenszwalb":
+                    val = eng.persontest({'arg1': img_to_detect_on})
+                    counter = 0
+                    newlist = []
+                    personlist = []
+                    for s in val:
+                        for c in s:
+                            counter = counter + 1
+                            if counter < 3700:
+                                c = round(c, 2)
+                                newlist.append(c)
+                        personlist.append(newlist)
+                        newlist = []
+                        counter = 0
+
+                    for s in personlist:
+                        newperson = list(chunks(s, 4))
+                        newpersonlist.append(newperson)
+                if detector == "ssd":
+                    newpersonlist = find_heads_ssd(img_path=img_to_detect_on,
+                                                   confidence_thresh=detector_cfg["confidence_threshold"])
 
                 bcounter = 0
                 histarray = []
@@ -164,6 +160,8 @@ class GMCP:
                     for body in person:
                         bcounter = bcounter + 1
                         if bcounter > 1:
+                            if len(body) != 4:
+                                continue
                             logger.info(f"Found object with coordinates: {body}")
                             x1 = int(body[0])
                             y1 = int(body[1])
@@ -1465,7 +1463,7 @@ class GMCP:
             vidstring = f"ffmpeg -i fixtures/tmp/videos/out.mp4 {SEGMENT_VIDEOS_PATH}" + str(segment_counter) + ".mp4"
             subprocess.call(vidstring, shell=True)
 
-        merge_videos(videos_dir=SEGMENT_VIDEOS_PATH+"*", output_file=self.video_out)
+        merge_videos(videos_dir=SEGMENT_VIDEOS_PATH + "*", output_file=self.video_out)
 
 
 if __name__ == "__main__":
